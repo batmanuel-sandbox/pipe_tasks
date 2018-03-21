@@ -490,7 +490,7 @@ discussed in @ref pipeTasks_multiBand (but note that normally, one would use the
             bit = afwImage.Mask.getMaskPlane(plane)
             statsCtrl.setMaskPropagationThreshold(bit, threshold)
         statsFlags = afwMath.stringToStatisticsProperty(self.config.statistic)
-        return (statsCtrl, statsFlags)
+        return pipeBase.Struct(ctrl=statsCtrl, flags=statsFlags)
 
     def assemble(self, skyInfo, tempExpRefList, imageScalerList, weightList,
                  altMaskList=None, mask=None, supplementaryData=None):
@@ -517,7 +517,7 @@ discussed in @ref pipeTasks_multiBand (but note that normally, one would use the
         """
         tempExpName = self.getTempExpDatasetName(self.warpType)
         self.log.info("Assembling %s %s", len(tempExpRefList), tempExpName)
-        statsCtrl, statsFlags = self.prepareStats(mask=mask)
+        stats = self.prepareStats(mask=mask)
 
         if altMaskList is None:
             altMaskList = [None]*len(tempExpRefList)
@@ -537,7 +537,7 @@ discussed in @ref pipeTasks_multiBand (but note that normally, one would use the
         for subBBox in _subBBoxIter(skyInfo.bbox, subregionSize):
             try:
                 self.assembleSubregion(coaddExposure, subBBox, tempExpRefList, imageScalerList,
-                                       weightList, altMaskList, statsFlags, statsCtrl,
+                                       weightList, altMaskList, stats.flags, stats.ctrl,
                                        nImage=nImage)
             except Exception as e:
                 self.log.fatal("Cannot compute coadd %s: %s", subBBox, e)
