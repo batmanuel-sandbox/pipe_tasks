@@ -534,7 +534,7 @@ discussed in @ref pipeTasks_multiBand (but note that normally, one would use the
             nImage = afwImage.ImageU(skyInfo.bbox)
         else:
             nImage = None
-        for subBBox in _subBBoxIter(skyInfo.bbox, subregionSize):
+        for subBBox in self._subBBoxIter(skyInfo.bbox, subregionSize):
             try:
                 self.assembleSubregion(coaddExposure, subBBox, tempExpRefList, imageScalerList,
                                        weightList, altMaskList, stats.flags, stats.ctrl,
@@ -806,31 +806,32 @@ discussed in @ref pipeTasks_multiBand (but note that normally, one would use the
                                ContainerClass=SelectDataIdContainer)
         return parser
 
+    @staticmethod
+    def _subBBoxIter(bbox, subregionSize):
+        """!
+        @brief Iterate over subregions of a bbox
 
-def _subBBoxIter(bbox, subregionSize):
-    """!
-    @brief Iterate over subregions of a bbox
+        @param[in] bbox: bounding box over which to iterate: afwGeom.Box2I
+        @param[in] subregionSize: size of sub-bboxes
 
-    @param[in] bbox: bounding box over which to iterate: afwGeom.Box2I
-    @param[in] subregionSize: size of sub-bboxes
+        @return subBBox: next sub-bounding box of size subregionSize or smaller;
+            each subBBox is contained within bbox, so it may be smaller than subregionSize
+            at the edges of bbox, but it will never be empty
+        """
+        if bbox.isEmpty():
+            raise RuntimeError("bbox %s is empty" % (bbox,))
+        if subregionSize[0] < 1 or subregionSize[1] < 1:
+            raise RuntimeError("subregionSize %s must be nonzero" % (subregionSize,))
 
-    @return subBBox: next sub-bounding box of size subregionSize or smaller;
-        each subBBox is contained within bbox, so it may be smaller than subregionSize at the edges of bbox,
-        but it will never be empty
-    """
-    if bbox.isEmpty():
-        raise RuntimeError("bbox %s is empty" % (bbox,))
-    if subregionSize[0] < 1 or subregionSize[1] < 1:
-        raise RuntimeError("subregionSize %s must be nonzero" % (subregionSize,))
-
-    for rowShift in range(0, bbox.getHeight(), subregionSize[1]):
-        for colShift in range(0, bbox.getWidth(), subregionSize[0]):
-            subBBox = afwGeom.Box2I(bbox.getMin() + afwGeom.Extent2I(colShift, rowShift), subregionSize)
-            subBBox.clip(bbox)
-            if subBBox.isEmpty():
-                raise RuntimeError("Bug: empty bbox! bbox=%s, subregionSize=%s, colShift=%s, rowShift=%s" %
-                                   (bbox, subregionSize, colShift, rowShift))
-            yield subBBox
+        for rowShift in range(0, bbox.getHeight(), subregionSize[1]):
+            for colShift in range(0, bbox.getWidth(), subregionSize[0]):
+                subBBox = afwGeom.Box2I(bbox.getMin() + afwGeom.Extent2I(colShift, rowShift), subregionSize)
+                subBBox.clip(bbox)
+                if subBBox.isEmpty():
+                    raise RuntimeError("Bug: empty bbox! bbox=%s, subregionSize=%s, "
+                                       "colShift=%s, rowShift=%s" %
+                                       (bbox, subregionSize, colShift, rowShift))
+                yield subBBox
 
 
 class AssembleCoaddDataIdContainer(pipeBase.DataIdContainer):
