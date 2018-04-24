@@ -11,4 +11,6 @@ lsst.pipe.tasks
 Python API reference
 ====================
 
-.. automodapi:: lsst.pipe.tasks
+.. automodapi:: lsst.pipe.tasks.assembleCoadd
+
+.. add additional ones on lines following this one after additional modules are ready
