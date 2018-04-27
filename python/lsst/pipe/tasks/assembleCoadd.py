@@ -1655,7 +1655,8 @@ class CompareWarpAssembleCoaddTask(AssembleCoaddTask):
             """ % {"warpName": warpName}
             raise RuntimeError(message)
 
-        return pipeBase.Struct(templateCoadd=templateCoadd.coaddExposure)
+        return pipeBase.Struct(templateCoadd=templateCoadd.coaddExposure,
+                               nImage=templateCoadd.nImage)
 
     def assemble(self, skyInfo, tempExpRefList, imageScalerList, weightList,
                  supplementaryData, *args, **kwargs):
