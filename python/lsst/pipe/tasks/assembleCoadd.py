@@ -648,13 +648,7 @@ discussed in @ref pipeTasks_multiBand (but note that normally, one would use the
             if nImage is not None:
                 subNImage.getArray()[maskedImage.getMask().getArray() & statsCtrl.getAndMask() == 0] += 1
             if self.config.removeMaskPlanes:
-                mask = maskedImage.getMask()
-                for maskPlane in self.config.removeMaskPlanes:
-                    try:
-                        mask &= ~mask.getPlaneBitMask(maskPlane)
-                    except Exception as e:
-                        self.log.warn("Unable to remove mask plane %s: %s", maskPlane, e.args[0])
-
+                self._removeMaskPlanes(maskedImage)
             maskedImageList.append(maskedImage)
 
         with self.timer("stack"):
@@ -664,6 +658,21 @@ discussed in @ref pipeTasks_multiBand (but note that normally, one would use the
         coaddExposure.maskedImage.assign(coaddSubregion, bbox)
         if nImage is not None:
             nImage.assign(subNImage, bbox)
+
+    def _removeMaskPlanes(self, maskedImage):
+        """Unset the mask of an image for mask planes specified in the config.
+
+        Parameters
+        ----------
+        maskedImage : lsst.afw.image.maskedImageF
+            The masked image to be modified.
+        """
+        mask = maskedImage.getMask()
+        for maskPlane in self.config.removeMaskPlanes:
+            try:
+                mask &= ~mask.getPlaneBitMask(maskPlane)
+            except Exception as e:
+                self.log.warn("Unable to remove mask plane %s: %s", maskPlane, e.args[0])
 
     def setRejectedMaskMapping(self, statsCtrl):
         """Map certain mask planes of the warps to new planes for the coadd.
